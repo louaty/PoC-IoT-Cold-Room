@@ -6,12 +6,14 @@
 #include <WiFiManager.h>
 #include <PubSubClient.h>
 
+#define MQTTpubQos 2                          
+
 //Création wifi and server
 WiFiManager manager;
 const char *mqtt_server = "broker.hivemq.com";
 void callback(char* topic, byte* message, unsigned int length);
-const char *ssid = "";      //hotspot
-const char *password = "";  //password
+const char *ssid = "";    //hotspot
+const char *password = "";    //password
 
 //Wifi Client
 WiFiClient espClient;
@@ -21,13 +23,14 @@ PubSubClient client(espClient);
 const int pin_temp = 39;
 const int pin_button = 36;
 RTC_DATA_ATTR boolean BoutonAppuye = 1;
-float affiche_temp;
+RTC_DATA_ATTR float affiche_temp;
+RTC_DATA_ATTR int count = 0;
+
 
 LiquidCrystal_I2C lcd(0x27, 16, 2); // set the LCD address to 0x27 for a 16 chars and 2 line display
 
 void IRAM_ATTR ecran_lcd() {
   BoutonAppuye = 0;
-
 }
 
 // the setup function runs once when you press reset or power the board
@@ -36,7 +39,6 @@ void setup() {
   Serial.println("Setup");
   // initialize the lcd
   lcd.init();
-  lcd.backlight();
   Serial.println("Setup");
 
   //Wifi
@@ -61,7 +63,7 @@ void setup() {
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_36, HIGH);
 
   esp_sleep_enable_timer_wakeup(10000000);
-  
+
 
 }
 
@@ -72,6 +74,7 @@ void loop() {
     reconnect();
   }
   client.loop();
+  Serial.println(count);
   boolean state_button = digitalRead(pin_button);
   //calcule de la température
   int value = adc1_get_raw(ADC1_CHANNEL_3);
@@ -85,6 +88,7 @@ void loop() {
   message += String("}");
   //envoie du message
   client.publish("IoT_Cours", message.c_str());
+  delay(1000);
   Serial.println(message);
   Serial.println(BoutonAppuye);
 
@@ -101,12 +105,14 @@ void loop() {
     BoutonAppuye = 1;
   }
   if (BoutonAppuye == 1) {
+
     Serial.println("Bouton fin");
     lcd.setCursor(0, 0);
     lcd.clear();
     lcd.noBacklight();
     lcd.noDisplay();
     esp_light_sleep_start();
+    ESP.restart();
   }
 
 }
