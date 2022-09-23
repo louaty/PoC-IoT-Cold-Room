@@ -12,9 +12,9 @@
 WiFiManager manager;
 const char *mqtt_server = "broker.hivemq.com";
 void callback(char* topic, byte* message, unsigned int length);
-const char *ssid = "iPhone";
-const char *password = "1234567890";
-//BjGA-aG91ZGEgbG91YXR5 nh7653!!!
+const char *ssid = "";    //hotspot
+const char *password = "";    //password
+
 //Wifi Client
 WiFiClient espClient;
 PubSubClient client(espClient);
